@@ -162,44 +162,71 @@ class Exporter extends AbstractExporter
         $filters = $this->getFilters();
         $withMedia = (bool) $filters['with_media'];
 
-        foreach ($this->attributes as $key => $attribute) {
+        foreach ($this->attributes as $attribute) {
             $attributeCode = $attribute->code;
 
-            if ($attributeCode == 'sku' || $attributeCode === 'status') {
+            if (in_array($attributeCode, ['sku', 'status'])) {
                 continue;
             }
 
-            $attributeValues[$attributeCode] = $values[$attributeCode] ?? null;
+            $value = $values[$attributeCode] ?? null;
+            $attributeValues[$attributeCode] = $value;
 
             if ($attribute->type == AttributeTypes::PRICE_ATTRIBUTE_TYPE) {
-                $priceData = ! empty($attributeValues[$attributeCode]) ? $attributeValues[$attributeCode] : [];
-
-                foreach ($this->currencies as $value) {
-                    $attributeValues[$attributeCode.' ('.$value.')'] = $priceData[$value] ?? null;
-                }
-
-                unset($attributeValues[$attributeCode]);
+                $this->handlePriceAttribute($attributeValues, $attributeCode, $value);
+                continue;
             }
 
-            if ($withMedia && in_array($attribute->type, [AttributeTypes::FILE_ATTRIBUTE_TYPE, AttributeTypes::IMAGE_ATTRIBUTE_TYPE, AttributeTypes::GALLERY_ATTRIBUTE_TYPE])) {
-                $existingFilePath = $values[$attributeCode] ?? null;
+            if ($withMedia && $this->isMediaAttribute($attribute->type)) {
+                $this->handleMediaAttribute($attributeValues, $attributeCode, $value, $filePath);
+            }
 
-                $existingFilePath = is_array($existingFilePath) ? $existingFilePath : [$existingFilePath];
-
-                foreach ($existingFilePath as $path) {
-                    if ($path && ! empty($path)) {
-                        $newfilePath = $filePath->getTemporaryPath().'/'.$path;
-                        $this->copyMedia($path, $newfilePath);
-                    }
-                }
-
-                if (is_array($existingFilePath)) {
-                    $attributeValues[$attributeCode] = implode(', ', $existingFilePath);
-                }
+            if (is_array($attributeValues[$attributeCode] ?? null)) {
+                $attributeValues[$attributeCode] = implode(', ', $attributeValues[$attributeCode]);
             }
         }
 
         return $attributeValues;
+    }
+
+    protected function handlePriceAttribute(array &$attributeValues, string $attributeCode, mixed $value): void
+    {
+        $priceData = !empty($value) ? $value : [];
+
+        foreach ($this->currencies as $currency) {
+            $attributeValues[$attributeCode . ' (' . $currency . ')'] = $priceData[$currency] ?? null;
+        }
+
+        unset($attributeValues[$attributeCode]);
+    }
+
+    protected function isMediaAttribute(string $type): bool
+    {
+        return in_array($type, [
+            AttributeTypes::FILE_ATTRIBUTE_TYPE,
+            AttributeTypes::IMAGE_ATTRIBUTE_TYPE,
+            AttributeTypes::GALLERY_ATTRIBUTE_TYPE
+        ]);
+    }
+
+    protected function handleMediaAttribute(array &$attributeValues, string $attributeCode, mixed $value, mixed $filePath): void
+    {
+        if (empty($value)) {
+            return;
+        }
+
+        $paths = is_array($value) ? $value : [$value];
+
+        foreach ($paths as $path) {
+            if (!empty($path)) {
+                $newFilePath = $filePath->getTemporaryPath() . '/' . $path;
+                $this->copyMedia($path, $newFilePath);
+            }
+        }
+
+        if (is_array($value)) {
+            $attributeValues[$attributeCode] = implode(', ', $paths);
+        }
     }
 
     /**
