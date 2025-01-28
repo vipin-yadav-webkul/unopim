@@ -2,15 +2,22 @@
 
 namespace Webkul\Admin\DataGrids\Catalog;
 
+use Illuminate\Support\Facades\Crypt;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Webkul\Attribute\Repositories\AttributeFamilyRepository;
+use Webkul\Attribute\Services\AttributeService;
+use Webkul\Core\Facades\ElasticSearch;
 use Webkul\Core\Repositories\ChannelRepository;
 use Webkul\DataGrid\Contracts\ExportableInterface;
 use Webkul\DataGrid\DataGrid;
+use Webkul\DataGrid\Column;
 use Webkul\Product\Normalizer\ProductAttributeValuesNormalizer;
 use Webkul\Product\Repositories\ProductRepository;
 use Webkul\Product\Type\AbstractType;
+use Illuminate\Support\Facades\Storage;
 
 class ProductDataGrid extends DataGrid implements ExportableInterface
 {
@@ -21,6 +28,8 @@ class ProductDataGrid extends DataGrid implements ExportableInterface
      */
     protected $primaryColumn = 'product_id';
 
+    protected $attributesColumns = [];
+
     /**
      * Constructor for the class.
      *
@@ -30,7 +39,8 @@ class ProductDataGrid extends DataGrid implements ExportableInterface
         protected AttributeFamilyRepository $attributeFamilyRepository,
         protected ProductRepository $productRepository,
         protected ChannelRepository $channelRepository,
-        protected ProductAttributeValuesNormalizer $valuesNormalizer
+        protected ProductAttributeValuesNormalizer $valuesNormalizer,
+        protected AttributeService $attributeService
     ) {}
 
     /**
@@ -55,11 +65,24 @@ class ProductDataGrid extends DataGrid implements ExportableInterface
                 'products.status',
                 'products.type',
                 'parent_products.sku as parent',
-                DB::raw('(CASE WHEN '.$tablePrefix.'attribute_family_name.name IS NULL OR CHAR_LENGTH(TRIM('.$tablePrefix.'attribute_family_name.name)) < 1 THEN CONCAT("[", '.$tablePrefix.'af.code,"]") ELSE '.$tablePrefix.'attribute_family_name.name END) as attribute_family')
+                DB::raw('
+                    JSON_MERGE(
+                        COALESCE(`parent_products`.`values`, "{}"),
+                        COALESCE(`products`.`values`, "{}")
+                    ) as raw_values
+                '),
+                DB::raw('
+                    CASE 
+                        WHEN '.$tablePrefix.'attribute_family_name.name IS NULL 
+                            OR CHAR_LENGTH(TRIM('.$tablePrefix.'attribute_family_name.name)) < 1 
+                        THEN CONCAT("[", '.$tablePrefix.'af.code, "]") 
+                        ELSE '.$tablePrefix.'attribute_family_name.name 
+                    END as attribute_family
+                ')
             );
 
         $this->addFilter('product_id', 'products.id');
-        $this->addFilter('attribute_family', 'af.code');
+        $this->addFilter('attribute_family', 'af.id');
         $this->addFilter('sku', 'products.sku');
         $this->addFilter('status', 'products.status');
         $this->addFilter('type', 'products.type');
@@ -91,7 +114,7 @@ class ProductDataGrid extends DataGrid implements ExportableInterface
                 'type' => 'basic',
 
                 'params' => [
-                    'options' => $this->attributeFamilyRepository->all(['code as label', 'code as value'])->toArray(),
+                    'options' => $this->attributeFamilyRepository->all(['code as label', 'id as value'])->toArray(),
                 ],
             ],
             'searchable' => false,
@@ -165,6 +188,76 @@ class ProductDataGrid extends DataGrid implements ExportableInterface
             'filterable' => true,
             'sortable'   => true,
         ]);
+
+        $this->prepareAttributeColumns();
+    }
+
+    public function prepareAttributeColumns()
+    {
+        $this->addAttributeColumn([
+            'index'      => 'image1',
+            'label'      => trans('Images'),
+            'type'       => 'string',
+            'searchable' => false,
+            'filterable' => false,
+            'sortable'   => false,
+            'closure'    => function ($value, $row) {
+                return '<img src="'.Storage::url($value).'" alt="Image" style="width: 50px; height: 50px;">';
+            },
+        ]);
+
+        $this->addAttributeColumn([
+            'index'      => 'color',
+            'label'      => trans('Color'),
+            'type'       => 'string',
+            'searchable' => false,
+            'filterable' => true,
+            'sortable'   => false,
+        ]);
+
+        $this->addAttributeColumn([
+            'index'      => 'size',
+            'label'      => trans('size'),
+            'type'       => 'string',
+            'searchable' => false,
+            'filterable' => true,
+            'sortable'   => false,
+        ]);
+
+        $this->addAttributeColumn([
+            'index'      => 'tax',
+            'label'      => trans('tax'),
+            'type'       => 'string',
+            'searchable' => false,
+            'filterable' => false,
+            'sortable'   => false,
+        ]);
+
+        $this->addAttributeColumn([
+            'index'      => 'vendor',
+            'label'      => trans('vendor'),
+            'type'       => 'string',
+            'searchable' => false,
+            'filterable' => true,
+            'sortable'   => false,
+        ]);
+    }
+
+    /**
+     * Add column.
+     */
+    public function addAttributeColumn(array $column): void
+    {
+        $this->attributesColumns[] = new Column(
+            index: $column['index'],
+            label: $column['label'],
+            type: $column['type'],
+            options: $column['options'] ?? null,
+            searchable: $column['searchable'],
+            filterable: $column['filterable'],
+            sortable: $column['sortable'],
+            closure: $column['closure'] ?? null,
+        );
     }
 
     /**
@@ -242,6 +335,238 @@ class ProductDataGrid extends DataGrid implements ExportableInterface
                 ],
             ]);
         }
+    }
+
+    /**
+     * Process request.
+     */
+    public function processRequest(): void
+    {
+        if (! env('ELASTICSEARCH_ENABLED', false)) {
+            parent::processRequest();
+
+            return;
+        }
+
+        $requestedParams = $this->validatedRequest();
+
+        try {
+            $params = $this->validatedRequest();
+            $pagination = $params['pagination'];
+
+            $indexPrefix = env('ELASTICSEARCH_INDEX_PREFIX') ? env('ELASTICSEARCH_INDEX_PREFIX') : env('APP_NAME');
+
+            try {
+                $results = Elasticsearch::search([
+                    'index' => strtolower($indexPrefix.'_products'),
+                    'body'  => [
+                        'from'          => ($pagination['page'] * $pagination['per_page']) - $pagination['per_page'],
+                        'size'          => $pagination['per_page'],
+                        'stored_fields' => [],
+                        'query'         => [
+                            'bool' => $this->getElasticFilters($params['filters'] ?? []) ?: new \stdClass,
+                        ],
+                        'sort'          => $this->getElasticSort($params['sort'] ?? []),
+                    ],
+                ]);
+            } catch (\Exception $e) {
+                if (str_contains($e->getMessage(), 'attribute_family_id')) {
+                    $results = Elasticsearch::search([
+                        'index' => strtolower($indexPrefix.'_products'),
+                        'body'  => [
+                            'from'          => ($pagination['page'] * $pagination['per_page']) - $pagination['per_page'],
+                            'size'          => $pagination['per_page'],
+                            'stored_fields' => [],
+                            'query'         => [
+                                'bool' => $this->getElasticFilters($params['filters'] ?? []) ?: new \stdClass,
+                            ],
+                            'sort'          => $this->sortAttributeFamilyByKey($params['sort'] ?? []),
+                        ],
+                    ]);
+                }
+            }
+
+            $totalResults = Elasticsearch::count([
+                'index' => strtolower($indexPrefix.'_products'),
+                'body'  => [
+                    'query' => [
+                        'bool' => $this->getElasticFilters($params['filters'] ?? []) ?: new \stdClass,
+                    ],
+                ],
+            ]);
+            
+            $ids = collect($results['hits']['hits'])->pluck('_id')->toArray();
+
+            $this->queryBuilder->whereIn('products.id', $ids)
+                ->orderBy(DB::raw('FIELD('.DB::getTablePrefix().'products.id, '.implode(',', $ids).')'));
+
+            if (isset($requestedParams['export']) && (bool) $requestedParams['export']) {
+                $this->exportable = true;
+
+                $gridData = $this instanceof ExportableInterface ? $this->getExportableData($requestedParams) : $this->queryBuilder->get();
+
+                $this->setExportFile($gridData, $requestedParams['format']);
+
+                return;
+            }
+
+            $total = $totalResults['count'];
+
+            $this->paginator = new LengthAwarePaginator(
+                $total ? $this->queryBuilder->get() : [],
+                $total,
+                $pagination['per_page'],
+                $pagination['page'],
+                [
+                    'path'  => request()->url(),
+                    'query' => [],
+                ]
+            );
+        } catch (\Exception $e) {
+            if (str_contains($e->getMessage(), 'index_not_found_exception')) {
+                Log::error('Elasticsearch index not found. Please create an index first.');
+                parent::processRequest();
+
+                return;
+            } else {
+                throw $e;
+            }
+        }
+    }
+
+    /**
+     * Process request.
+     */
+    protected function getElasticFilters($params): array
+    {
+        $filters = [];
+
+        foreach ($params as $attribute => $value) {
+            if (in_array($attribute, ['channel', 'locale'])) {
+                continue;
+            }
+
+            if ($attribute == 'all') {
+                $attribute = 'name';
+            }
+
+            if ($attribute === 'product_id') {
+                $value = array_map(function ($val) {
+                    return is_numeric($val) ? $val : 0;
+                }, $value);
+            }
+
+            $value = array_filter($value, function ($val) {
+                return $val !== null && $val !== '';
+            });
+
+            if (count($value) > 0) {
+                $filters['filter'][] = $this->getFilterValue($attribute, $value);
+            }
+        }
+        // dd($filters);
+        return $filters;
+    }
+
+    /**
+     * Return applied filters
+     */
+    public function getFilterValue(mixed $attribute, mixed $values): array
+    {
+        switch ($attribute) {
+            case 'product_id':
+                return [
+                    'terms' => [
+                        'id' => $values,
+                    ],
+                ];
+
+            case 'attribute_family':
+                return [
+                    'terms' => [
+                        'attribute_family_id' => $values,
+                    ],
+                ];
+
+            case 'sku':
+            case 'name':
+                $filters = [];
+
+                foreach ($values as $value) {
+                    $filters['bool']['should'][] = [
+                        'match_phrase_prefix' => [
+                            'sku' => $value,
+                        ],
+                    ];
+                }
+
+                return $filters;
+
+            default:
+                return [
+                    'terms' => $this->getFilterRawValues($attribute, $values),
+                ];
+        }
+    }
+
+    public function getFilterRawValues(mixed $attribute, mixed $values)
+    {
+        // $attribute = $this->attributeService->findAttributeByCode($attribute);
+        // dd($attribute, $values);
+        $valuesKey = 'common';
+
+        return [
+            sprintf('values.%s.%s', $valuesKey, $attribute) => $values,
+        ];
+    }
+
+    /**
+     * Process request.
+     */
+    protected function getElasticSort($params): array
+    {
+        $sort = $params['column'] ?? $this->primaryColumn;
+
+        if ($sort == 'type') {
+            $sort .= '.keyword';
+        }
+
+        if ($sort == 'sku') {
+            $sort .= '.keyword';
+        }
+
+        if ($sort == 'attribute_family') {
+            $sort = 'attribute_family_id';
+        }
+
+        if ($sort == 'product_id') {
+            $sort = 'id';
+        }
+
+        return [
+            $sort => [
+                'order' => $params['order'] ?? $this->sortOrder,
+            ],
+        ];
+    }
+
+    /**
+     * Process request.
+     */
+    protected function sortAttributeFamilyByKey($params): array
+    {
+        $sort = $params['column'] ?? $this->primaryColumn;
+
+        if ($sort == 'attribute_family') {
+            $sort = 'attribute_family_id';
+            $sort .= '.keyword';
+        }
+
+        return [
+            $sort => [
+                'order' => $params['order'] ?? $this->sortOrder,
+            ],
+        ];
     }
 
     /**
@@ -373,5 +698,93 @@ class ProductDataGrid extends DataGrid implements ExportableInterface
         $productArray['status'] = $productArray['status'] ? 'true' : 'false';
 
         return $productArray;
+    }
+
+    /**
+     * Format data.
+     */
+    public function formatData(): array
+    {
+        $paginator = $this->paginator->toArray();
+
+        /**
+         * TODO: need to handle this...
+         */
+        foreach ($this->columns as $column) {
+            $column->input_type = $column->getFormInputType();
+
+            $column->options = $column->getFormOptions();
+        }
+        
+        foreach ($paginator['data'] as $record) {
+            $record = $this->sanitizeRow($record);
+            
+            foreach ($this->columns as $column) {
+                if ($closure = $column->closure) {
+                    $record->{$column->index} = $closure($record);
+
+                    $record->is_closure = true;
+                }
+            }
+
+            $this->processRawValues($record);
+            
+            $record->actions = [];
+
+            foreach ($this->actions as $index => $action) {
+                $getUrl = $action->url;
+
+                $record->actions[] = [
+                    'index'         => ! empty($action->index) ? $action->index : 'action_'.$index + 1,
+                    'icon'          => $action->icon,
+                    'title'         => $action->title,
+                    'method'        => $action->method,
+                    'url'           => $getUrl($record),
+                    'frontend_view' => $action?->frontendView,
+                ];
+            }
+        }
+        
+        return [
+            'id'                 => Crypt::encryptString(get_called_class()),
+            'columns'            => array_merge($this->columns, $this->attributesColumns),
+            'actions'            => $this->actions,
+            'mass_actions'       => $this->massActions,
+            'search_placeholder' => __($this->searchPlaceholder),
+            'records'            => $paginator['data'],
+            'meta'               => [
+                'primary_column'   => $this->primaryColumn,
+                'from'             => $paginator['from'],
+                'to'               => $paginator['to'],
+                'total'            => $paginator['total'],
+                'per_page_options' => [10, 20, 30, 40, 50],
+                'per_page'         => $paginator['per_page'],
+                'current_page'     => $paginator['current_page'],
+                'last_page'        => $paginator['last_page'],
+            ],
+        ];
+    }
+    
+    /**
+     * Process raw values and update record.
+     *
+     * @param object $record
+     * @return void
+     */
+    protected function processRawValues(&$record)
+    {
+        $rawValues = json_decode($record->raw_values, true);
+        $values = $this->formatProductValues($rawValues, core()->getRequestedLocaleCode(), core()->getRequestedChannelCode());
+        
+        unset($record->raw_values);
+
+        foreach ($this->attributesColumns as $column) {
+            if ($closure = $column->closure) {
+                $record->{$column->index} = $closure($values[$column->index] ?? null, $record);
+                continue;
+            }
+
+            $record->{$column->index} = $values[$column->index] ?? null;
+        }
     }
 }
