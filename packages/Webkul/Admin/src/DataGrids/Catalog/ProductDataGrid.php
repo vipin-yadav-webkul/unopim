@@ -202,45 +202,20 @@ class ProductDataGrid extends DataGrid implements ExportableInterface
             'filterable' => false,
             'sortable'   => false,
             'closure'    => function ($value, $row) {
-                return '<img src="'.Storage::url($value).'" alt="Image" style="width: 50px; height: 50px;">';
+                return '<img src="'.Storage::url($value).'" alt="Image" style="width: 50px; height: 50px; object-fit: cover;">';
             },
         ]);
 
-        $this->addAttributeColumn([
-            'index'      => 'color',
-            'label'      => trans('Color'),
-            'type'       => 'string',
-            'searchable' => false,
-            'filterable' => true,
-            'sortable'   => false,
-        ]);
-
-        $this->addAttributeColumn([
-            'index'      => 'size',
-            'label'      => trans('size'),
-            'type'       => 'string',
-            'searchable' => false,
-            'filterable' => true,
-            'sortable'   => false,
-        ]);
-
-        $this->addAttributeColumn([
-            'index'      => 'tax',
-            'label'      => trans('tax'),
-            'type'       => 'string',
-            'searchable' => false,
-            'filterable' => false,
-            'sortable'   => false,
-        ]);
-
-        $this->addAttributeColumn([
-            'index'      => 'vendor',
-            'label'      => trans('vendor'),
-            'type'       => 'string',
-            'searchable' => false,
-            'filterable' => true,
-            'sortable'   => false,
-        ]);
+        foreach (['color', 'size', 'collection', 'stock', 'brand', 'tax', 'vendor', 'weight', 'height', 'width', 'length', 'cost', 'price'] as $attribute) {
+            $this->addAttributeColumn([
+                'index'      => $attribute,
+                'label'      => $attribute,
+                'type'       => 'string',
+                'searchable' => false,
+                'filterable' => true,
+                'sortable'   => true,
+            ]);
+        }
     }
 
     /**
@@ -269,6 +244,7 @@ class ProductDataGrid extends DataGrid implements ExportableInterface
     {
         if (bouncer()->hasPermission('catalog.products.edit')) {
             $this->addAction([
+                'index'  => 'edit',
                 'icon'   => 'icon-edit',
                 'title'  => trans('admin::app.catalog.products.index.datagrid.edit'),
                 'method' => 'GET',
@@ -280,6 +256,7 @@ class ProductDataGrid extends DataGrid implements ExportableInterface
 
         if (bouncer()->hasPermission('catalog.products.copy')) {
             $this->addAction([
+                'index'  => 'edit',
                 'icon'   => 'icon-copy',
                 'title'  => trans('admin::app.catalog.products.index.datagrid.copy'),
                 'method' => 'GET',
@@ -355,7 +332,7 @@ class ProductDataGrid extends DataGrid implements ExportableInterface
             $pagination = $params['pagination'];
 
             $indexPrefix = env('ELASTICSEARCH_INDEX_PREFIX') ? env('ELASTICSEARCH_INDEX_PREFIX') : env('APP_NAME');
-
+            
             try {
                 $results = Elasticsearch::search([
                     'index' => strtolower($indexPrefix.'_products'),
@@ -504,19 +481,26 @@ class ProductDataGrid extends DataGrid implements ExportableInterface
 
             default:
                 return [
-                    'terms' => $this->getFilterRawValues($attribute, $values),
+                    'match' => $this->getFilterRawValues($attribute, $values),
                 ];
         }
     }
 
+    /**
+     *  Process request. filter by attribute
+     */
     public function getFilterRawValues(mixed $attribute, mixed $values)
     {
-        // $attribute = $this->attributeService->findAttributeByCode($attribute);
-        // dd($attribute, $values);
-        $valuesKey = 'common';
+        $attribute = $this->attributeService->findAttributeByCode($attribute);
+
+        if (!$attribute) {
+            return $values;
+        }
+
+        $valuesKey = $this->attributeService->getAttributeScope($attribute);
 
         return [
-            sprintf('values.%s.%s', $valuesKey, $attribute) => $values,
+            sprintf('values.%s.%s', $valuesKey, $attribute) => current($values),
         ];
     }
 
@@ -527,27 +511,38 @@ class ProductDataGrid extends DataGrid implements ExportableInterface
     {
         $sort = $params['column'] ?? $this->primaryColumn;
 
-        if ($sort == 'type') {
-            $sort .= '.keyword';
-        }
+        $sortMapping = [
+            'type' => 'type.keyword',
+            'sku' => 'sku.keyword',
+            'attribute_family' => 'attribute_family_id',
+            'product_id' => 'id'
+        ];
 
-        if ($sort == 'sku') {
-            $sort .= '.keyword';
-        }
-
-        if ($sort == 'attribute_family') {
-            $sort = 'attribute_family_id';
-        }
-
-        if ($sort == 'product_id') {
-            $sort = 'id';
-        }
-
+        $sort = $sortMapping[$sort] ?? $this->getElasticRawValuesSort($sort);
+        
         return [
             $sort => [
                 'order' => $params['order'] ?? $this->sortOrder,
+                'missing' => '_last',
+                'unmapped_type' => 'keyword'
             ],
         ];
+    }
+
+    /**
+     *  Process request. sort order by attribute
+     */
+    protected function getElasticRawValuesSort($attribute): string
+    {
+        $attribute = $this->attributeService->findAttributeByCode($attribute);
+
+        if (!$attribute) {
+            return $attribute;
+        }
+
+        $valuesKey = $this->attributeService->getAttributeScope($attribute);
+        
+        return sprintf('values.%s.%s.keyword', $valuesKey, $attribute);
     }
 
     /**
@@ -767,11 +762,8 @@ class ProductDataGrid extends DataGrid implements ExportableInterface
     
     /**
      * Process raw values and update record.
-     *
-     * @param object $record
-     * @return void
      */
-    protected function processRawValues(&$record)
+    protected function processRawValues(object &$record): void
     {
         $rawValues = json_decode($record->raw_values, true);
         $values = $this->formatProductValues($rawValues, core()->getRequestedLocaleCode(), core()->getRequestedChannelCode());

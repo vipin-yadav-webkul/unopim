@@ -33,4 +33,19 @@ class AttributeService
 
         return $attribute;
     }
+
+
+    /**
+     * Get Attribute  scope
+     */
+    public function getAttributeScope($attribute): string
+    {
+        return ($attribute->value_per_locale && $attribute->value_per_channel) 
+        ? 'channel_locale_specific' 
+        : ($attribute->value_per_locale 
+            ? 'locale_specific' 
+            : ($attribute->value_per_channel 
+                ? 'channel_specific' 
+                : 'common'));
+    }
 }
