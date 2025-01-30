@@ -28,6 +28,8 @@ class ProductDataGrid extends DataGrid implements ExportableInterface
      */
     protected $primaryColumn = 'product_id';
 
+    protected $sortColumn = 'updated_at';
+
     protected $attributesColumns = [];
 
     /**
@@ -509,13 +511,14 @@ class ProductDataGrid extends DataGrid implements ExportableInterface
      */
     protected function getElasticSort($params): array
     {
-        $sort = $params['column'] ?? $this->primaryColumn;
-
+        $sort = $params['column'] ?? $this->sortColumn;
+        
         $sortMapping = [
             'type' => 'type.keyword',
             'sku' => 'sku.keyword',
             'attribute_family' => 'attribute_family_id',
-            'product_id' => 'id'
+            'product_id' => 'id',
+            'updated_at' => 'updated_at',
         ];
 
         $sort = $sortMapping[$sort] ?? $this->getElasticRawValuesSort($sort);
@@ -749,6 +752,7 @@ class ProductDataGrid extends DataGrid implements ExportableInterface
             'records'            => $paginator['data'],
             'meta'               => [
                 'primary_column'   => $this->primaryColumn,
+                'default_order' => $this->sortColumn,
                 'from'             => $paginator['from'],
                 'to'               => $paginator['to'],
                 'total'            => $paginator['total'],
