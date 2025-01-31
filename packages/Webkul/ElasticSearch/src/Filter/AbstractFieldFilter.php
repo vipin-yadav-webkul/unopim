@@ -1,5 +1,7 @@
 <?php
 
+namespace Webkul\ElasticSearch\Filter;
+
 use Webkul\ElasticSearch\Contracts\FieldFilterInterface;
 
 use Webkul\ElasticSearch\SearchQueryBuilder;

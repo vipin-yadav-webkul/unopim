@@ -18,6 +18,10 @@ use Webkul\Product\Normalizer\ProductAttributeValuesNormalizer;
 use Webkul\Product\Repositories\ProductRepository;
 use Webkul\Product\Type\AbstractType;
 use Illuminate\Support\Facades\Storage;
+use Webkul\Product\Query\ProductQueryBuilder;
+use Webkul\Product\ElasticSearch\Cursor\ResultCursorFactory;
+use Webkul\ElasticSearch\Facades\SearchQuery;
+use Webkul\ElasticSearch\Filter\Operators;
 
 class ProductDataGrid extends DataGrid implements ExportableInterface
 {
@@ -42,7 +46,8 @@ class ProductDataGrid extends DataGrid implements ExportableInterface
         protected ProductRepository $productRepository,
         protected ChannelRepository $channelRepository,
         protected ProductAttributeValuesNormalizer $valuesNormalizer,
-        protected AttributeService $attributeService
+        protected AttributeService $attributeService,
+        protected ProductQueryBuilder $productQueryBuilder
     ) {}
 
     /**
@@ -54,10 +59,9 @@ class ProductDataGrid extends DataGrid implements ExportableInterface
     {
         $tablePrefix = DB::getTablePrefix();
 
-        $queryBuilder = DB::table('products')
-            ->leftJoin('attribute_families as af', 'products.attribute_family_id', '=', 'af.id')
-            ->leftJoin('products as parent_products', 'products.parent_id', '=', 'parent_products.id')
-            ->leftJoin('attribute_family_translations as attribute_family_name', function ($join) {
+        $queryBuilder = $this->productQueryBuilder->getQueryBuilder();
+
+        $queryBuilder->leftJoin('attribute_family_translations as attribute_family_name', function ($join) {
                 $join->on('attribute_family_name.attribute_family_id', '=', 'af.id')
                     ->where('attribute_family_name.locale', '=', core()->getRequestedLocaleCode());
             })
@@ -333,48 +337,14 @@ class ProductDataGrid extends DataGrid implements ExportableInterface
             $params = $this->validatedRequest();
             $pagination = $params['pagination'];
 
-            $indexPrefix = env('ELASTICSEARCH_INDEX_PREFIX') ? env('ELASTICSEARCH_INDEX_PREFIX') : env('APP_NAME');
+            $this->setElasticSort($params['sort'] ?? []);
+          
+            $esQuery = SearchQuery::getQuery();
             
-            try {
-                $results = Elasticsearch::search([
-                    'index' => strtolower($indexPrefix.'_products'),
-                    'body'  => [
-                        'from'          => ($pagination['page'] * $pagination['per_page']) - $pagination['per_page'],
-                        'size'          => $pagination['per_page'],
-                        'stored_fields' => [],
-                        'query'         => [
-                            'bool' => $this->getElasticFilters($params['filters'] ?? []) ?: new \stdClass,
-                        ],
-                        'sort'          => $this->getElasticSort($params['sort'] ?? []),
-                    ],
-                ]);
-            } catch (\Exception $e) {
-                if (str_contains($e->getMessage(), 'attribute_family_id')) {
-                    $results = Elasticsearch::search([
-                        'index' => strtolower($indexPrefix.'_products'),
-                        'body'  => [
-                            'from'          => ($pagination['page'] * $pagination['per_page']) - $pagination['per_page'],
-                            'size'          => $pagination['per_page'],
-                            'stored_fields' => [],
-                            'query'         => [
-                                'bool' => $this->getElasticFilters($params['filters'] ?? []) ?: new \stdClass,
-                            ],
-                            'sort'          => $this->sortAttributeFamilyByKey($params['sort'] ?? []),
-                        ],
-                    ]);
-                }
-            }
-
-            $totalResults = Elasticsearch::count([
-                'index' => strtolower($indexPrefix.'_products'),
-                'body'  => [
-                    'query' => [
-                        'bool' => $this->getElasticFilters($params['filters'] ?? []) ?: new \stdClass,
-                    ],
-                ],
-            ]);
+            $esQuery['query']['bool'] = $this->getElasticFilters($params['filters'] ?? []) ?: new \stdClass;
+            $result = ResultCursorFactory::createCursor($esQuery, $params);
             
-            $ids = collect($results['hits']['hits'])->pluck('_id')->toArray();
+            $ids = $result->getIds();
 
             $this->queryBuilder->whereIn('products.id', $ids)
                 ->orderBy(DB::raw('FIELD('.DB::getTablePrefix().'products.id, '.implode(',', $ids).')'));
@@ -389,7 +359,7 @@ class ProductDataGrid extends DataGrid implements ExportableInterface
                 return;
             }
 
-            $total = $totalResults['count'];
+            $total = $result->count();
 
             $this->paginator = new LengthAwarePaginator(
                 $total ? $this->queryBuilder->get() : [],
@@ -419,7 +389,7 @@ class ProductDataGrid extends DataGrid implements ExportableInterface
     protected function getElasticFilters($params): array
     {
         $filters = [];
-
+        
         foreach ($params as $attribute => $value) {
             if (in_array($attribute, ['channel', 'locale'])) {
                 continue;
@@ -443,48 +413,20 @@ class ProductDataGrid extends DataGrid implements ExportableInterface
                 $filters['filter'][] = $this->getFilterValue($attribute, $value);
             }
         }
-        // dd($filters);
+        
         return $filters;
     }
 
     /**
      * Return applied filters
      */
-    public function getFilterValue(mixed $attribute, mixed $values): array
+    public function getFilterValue(mixed $attribute, mixed $values)
     {
         switch ($attribute) {
-            case 'product_id':
-                return [
-                    'terms' => [
-                        'id' => $values,
-                    ],
-                ];
-
-            case 'attribute_family':
-                return [
-                    'terms' => [
-                        'attribute_family_id' => $values,
-                    ],
-                ];
-
             case 'sku':
-            case 'name':
-                $filters = [];
+                $this->queryBuilder->addFilter($attribute, Operators::IN_LIST, $values);
+                break;
 
-                foreach ($values as $value) {
-                    $filters['bool']['should'][] = [
-                        'match_phrase_prefix' => [
-                            'sku' => $value,
-                        ],
-                    ];
-                }
-
-                return $filters;
-
-            default:
-                return [
-                    'match' => $this->getFilterRawValues($attribute, $values),
-                ];
         }
     }
 
@@ -509,7 +451,7 @@ class ProductDataGrid extends DataGrid implements ExportableInterface
     /**
      * Process request.
      */
-    protected function getElasticSort($params): array
+    protected function setElasticSort($params)
     {
         $sort = $params['column'] ?? $this->sortColumn;
         
@@ -522,14 +464,15 @@ class ProductDataGrid extends DataGrid implements ExportableInterface
         ];
 
         $sort = $sortMapping[$sort] ?? $this->getElasticRawValuesSort($sort);
-        
-        return [
+
+        SearchQuery::addSort([
             $sort => [
                 'order' => $params['order'] ?? $this->sortOrder,
                 'missing' => '_last',
                 'unmapped_type' => 'keyword'
             ],
-        ];
+        ]);
+
     }
 
     /**

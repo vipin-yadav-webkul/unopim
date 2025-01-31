@@ -141,7 +141,7 @@ class SearchQueryBuilder
     public function getQuery(array $source = []): array
     {
         if (empty($source)) {
-            $source = ['id', 'identifier', 'document_type'];
+            $source = ['id'];
         }
 
         $searchQuery = [

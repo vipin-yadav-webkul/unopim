@@ -4,12 +4,14 @@ namespace Webkul\ElasticSearch;
 
 use Webkul\ElasticSearch\Contracts\QueryBuilderInterface;
 
-class AbstractEntityQueryBuilder implements QueryBuilderInterface
+abstract class AbstractEntityQueryBuilder implements QueryBuilderInterface
 {
     /** @var mixed */
     protected $qb;
 
     protected array $rawFilters = [];
+
+    abstract public function prepareQueryBuilder();
 
     /**
      * {@inheritdoc}
@@ -27,7 +29,7 @@ class AbstractEntityQueryBuilder implements QueryBuilderInterface
     public function getQueryBuilder()
     {
         if (null === $this->qb) {
-            throw new \LogicException('Query builder must be configured');
+            $this->qb = $this->prepareQueryBuilder();
         }
 
         return $this->qb;

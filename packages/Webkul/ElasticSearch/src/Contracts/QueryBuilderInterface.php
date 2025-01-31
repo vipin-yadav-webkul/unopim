@@ -10,18 +10,12 @@ interface QueryBuilderInterface
      * Get query builder
      *
      * @throws \LogicException in case the query builder has not been configured
-     *
-     * @return SearchQueryBuilder
      */
     public function getQueryBuilder();
     
 
     /**
      * Set query builder
-     *
-     * @param mixed $queryBuilder
-     *
-     * @return QueryBuilderInterface
      */
     public function setQueryBuilder($queryBuilder);
 
