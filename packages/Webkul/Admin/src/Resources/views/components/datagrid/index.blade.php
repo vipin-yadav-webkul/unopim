@@ -239,9 +239,6 @@
 
                             this.available.searchPlaceholder = search_placeholder;
 
-                            // this.applied.managedColumns = meta?.managedColumn?.columns;
-                            // this.available.manageableColumn = meta?.managedColumn.enabled;
-
                             this.setCurrentSelectionMode();
 
                             this.updateDatagrids();

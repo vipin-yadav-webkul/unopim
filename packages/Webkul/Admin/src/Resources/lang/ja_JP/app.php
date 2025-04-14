@@ -148,6 +148,8 @@ return [
                     'update-status'          => '更新ステータス',
                     'parent'                 => '親',
                     'parent-identifier'      => '親: :sku',
+                    'created-at'             => '作成日時',
+                    'updated-at'             => '更新日時',
                 ],
             ],
 
@@ -280,7 +282,6 @@ return [
             'product-not-found'       => 'SKU「:sku」の製品が見つかりませんでした',
             'parent-not-found'        => 'SKU「:sku」の親が見つかりませんでした',
             'upload-success'          => '製品ファイルが正常にアップロードされました。',
-            'update-failure'          => '商品は更新できませんでした。',
         ],
 
         'attributes' => [
@@ -570,8 +571,6 @@ return [
             'not-found'            => 'コード ":code" のカテゴリが見つかりませんでした',
             'unknown-fields'       => 'コード ":fields" のカテゴリ フィールドが見つかりませんでした',
             'upload-success'       => 'カテゴリ ファイルが正常にアップロードされました。',
-            'create-failure'       => 'カテゴリーを作成できませんでした。',
-            'update-failure'       => 'カテゴリーは更新できませんでした。',
         ],
 
         'category_fields' => [
@@ -1962,16 +1961,12 @@ return [
     ],
 
     'export' => [
-        'csv'                  => 'CSV',
-        'download'             => 'ダウンロード',
-        'export'               => 'クイックエクスポート',
-        'no-records'           => 'エクスポートするものはありません',
-        'xls'                  => 'XLS',
-        'xlsx'                 => 'XLSX',
-        'with-media'           => 'メディアあり',
-        'export-success'       => 'エクスポートが成功しました！',
-        'error'                => '問題が発生しました！',
-        'product-not-selected' => 'クイックエクスポート用に商品が選択されていません',
+        'csv'        => 'CSV',
+        'download'   => 'ダウンロード',
+        'export'     => 'クイックエクスポート',
+        'no-records' => 'エクスポートするものはありません',
+        'xls'        => 'XLS',
+        'xlsx'       => 'XLSX',
     ],
 
     'validations' => [

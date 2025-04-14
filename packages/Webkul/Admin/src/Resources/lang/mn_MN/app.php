@@ -148,6 +148,8 @@ return [
                     'update-status'          => 'Статтын шинэчлэлтийн',
                     'parent'                 => 'Хуучин аадчлал',
                     'parent-identifier'      => 'Эцэг эх: :sku',
+                    'created-at'             => 'Үүсгэсэн',
+                    'updated-at'             => 'Шинэчлэгдсэн цаг',
                 ],
             ],
 
@@ -280,7 +282,6 @@ return [
             'product-not-found'       => '":sku" sku-тай бүтээгдэхүүн олдсонгүй',
             'parent-not-found'        => '":sku" sku-тай эцэг эх олдсонгүй',
             'upload-success'          => 'Бүтээгдэхүүний файлыг амжилттай байршуулсан.',
-            'update-failure'          => 'Бүтээгдэхүүнийг шинэчилж чадаагүй.',
         ],
 
         'attributes' => [
@@ -573,8 +574,6 @@ return [
             'not-found'            => '":code" кодтой ангилал олдсонгүй',
             'unknown-fields'       => '":fields" кодтой ангиллын талбар олдсонгүй',
             'upload-success'       => 'Ангилалын файлыг амжилттай байршуулсан.',
-            'create-failure'       => 'Ангилалыг үүсгэж чадаагүй.',
-            'update-failure'       => 'Ангилалыг шинэчилж чадаагүй.',
         ],
 
         'category_fields' => [
@@ -2412,16 +2411,12 @@ return [
     ],
 
     'export' => [
-        'csv'                  => 'Csv',
-        'download'             => 'Татаж авах',
-        'export'               => 'Шуурхай экспорт',
-        'no-records'           => 'Экспорт хийх юу ч биш',
-        'xls'                  => 'Xls',
-        'xlsx'                 => 'Xlsx',
-        'with-media'           => 'Хэвлэл мэдээлэлтэй',
-        'export-success'       => 'Экспорт амжилттай боллоо!',
-        'error'                => 'Ямар нэгэн алдаа гарлаа!',
-        'product-not-selected' => 'Хурдан экспортод зориулан бүтээгдэхүүн сонгогдоогүй байна',
+        'csv'        => 'Csv',
+        'download'   => 'Татаж авах',
+        'export'     => 'Шуурхай экспорт',
+        'no-records' => 'Экспорт хийх юу ч биш',
+        'xls'        => 'Xls',
+        'xlsx'       => 'Xlsx',
     ],
 
     'validations' => [

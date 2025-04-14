@@ -6,6 +6,11 @@ use Illuminate\Http\JsonResponse;
 
 class SelectOptionsController extends AbstractOptionsController
 {
+    /**
+     * get available options
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function getOptions()
     {
         $entityName = request()->get('entityName');
@@ -27,6 +32,5 @@ class SelectOptionsController extends AbstractOptionsController
             'page'     => $options->currentPage(),
             'lastPage' => $options->lastPage(),
         ]);
-
     }
 }

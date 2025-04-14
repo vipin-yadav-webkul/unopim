@@ -148,6 +148,8 @@ return [
                     'update-status'          => 'Status aktualisieren',
                     'parent'                 => 'Übergeordnetes Element',
                     'parent-identifier'      => 'Übergeordnetes Element: :sku',
+                    'created-at'             => 'Erstellt am',
+                    'updated-at'             => 'Aktualisiert am',
                 ],
             ],
 
@@ -280,7 +282,6 @@ return [
             'product-not-found'       => 'Produkt mit SKU „:sku“ konnte nicht gefunden werden',
             'parent-not-found'        => 'Übergeordnetes Element mit SKU „:sku“ konnte nicht gefunden werden',
             'upload-success'          => 'Produktdatei erfolgreich hochgeladen.',
-            'update-failure'          => 'Produkt konnte nicht aktualisiert werden.',
         ],
 
         'attributes' => [
@@ -570,8 +571,6 @@ return [
             'not-found'            => 'Kategorie mit Code „:code“ konnte nicht gefunden werden',
             'unknown-fields'       => 'Kategoriefeld mit Code „:fields“ konnte nicht gefunden werden',
             'upload-success'       => 'Kategoriedatei erfolgreich hochgeladen.',
-            'create-failure'       => 'Kategorie konnte nicht erstellt werden.',
-            'update-failure'       => 'Kategorie konnte nicht aktualisiert werden.',
         ],
 
         'category_fields' => [
@@ -1961,16 +1960,12 @@ return [
     ],
 
     'export' => [
-        'csv'                  => 'CSV',
-        'download'             => 'Herunterladen',
-        'export'               => 'Schneller Export',
-        'no-records'           => 'Nichts zu exportieren',
-        'xls'                  => 'XLS',
-        'xlsx'                 => 'XLSX',
-        'with-media'           => 'Mit Medien',
-        'export-success'       => 'Export erfolgreich!',
-        'error'                => 'Etwas ist schiefgelaufen!',
-        'product-not-selected' => 'Keine Produkte für den Schnell-Export ausgewählt',
+        'csv'        => 'CSV',
+        'download'   => 'Herunterladen',
+        'export'     => 'Schneller Export',
+        'no-records' => 'Nichts zu exportieren',
+        'xls'        => 'XLS',
+        'xlsx'       => 'XLSX',
     ],
 
     'validations' => [

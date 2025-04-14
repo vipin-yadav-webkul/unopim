@@ -148,6 +148,8 @@ return [
                     'update-status'          => 'Actualizează statusul',
                     'parent'                 => 'Părinte',
                     'parent-identifier'      => 'Părinte: :sku',
+                    'created-at'             => 'Creat la',
+                    'updated-at'             => 'Actualizat la',
                 ],
             ],
 
@@ -280,7 +282,6 @@ return [
             'product-not-found'       => 'Produsul cu SKU ":sku" nu a fost găsit',
             'parent-not-found'        => 'Părintele cu SKU ":sku" nu a fost găsit',
             'upload-success'          => 'Fișierul produsului a fost încărcat cu succes.',
-            'update-failure'          => 'Produsul nu a putut fi actualizat.',
         ],
 
         'attributes' => [
@@ -572,8 +573,6 @@ return [
             'not-found'            => 'Categorie cu codul ":code" nu a fost găsită',
             'unknown-fields'       => 'Câmp necunoscut pentru categoria cu codul ":fields"',
             'upload-success'       => 'Fișierul categoriei a fost încărcat cu succes.',
-            'create-failure'       => 'Categoria nu a putut fi creată.',
-            'update-failure'       => 'Categoria nu a putut fi actualizată.',
         ],
 
         'category_fields' => [
@@ -1612,16 +1611,12 @@ return [
     ],
 
     'export' => [
-        'csv'                  => 'CSV',
-        'download'             => 'Descarcă',
-        'export'               => 'Export rapid',
-        'no-records'           => 'Nimic de exportat',
-        'xls'                  => 'XLS',
-        'xlsx'                 => 'XLSX',
-        'with-media'           => 'Cu media',
-        'export-success'       => 'Export realizat cu succes!',
-        'error'                => 'Ceva n-a mers bine!',
-        'product-not-selected' => 'Nu au fost selectate produse pentru export rapid',
+        'csv'        => 'CSV',
+        'download'   => 'Descarcă',
+        'export'     => 'Export rapid',
+        'no-records' => 'Nimic de exportat',
+        'xls'        => 'XLS',
+        'xlsx'       => 'XLSX',
     ],
 
     'validations' => [

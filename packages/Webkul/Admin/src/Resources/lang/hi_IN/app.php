@@ -280,7 +280,6 @@ return [
             'product-not-found'       => 'SKU के साथ उत्पाद ":sku" नहीं मिला',
             'parent-not-found'        => 'SKU के साथ जनक ":sku" नहीं मिला',
             'upload-success'          => 'उत्पाद फ़ाइल सफलतापूर्वक अपलोड की गई।',
-            'update-failure'          => 'उत्पाद को अद्यतन नहीं किया जा सका।',
         ],
 
         'attributes' => [
@@ -507,19 +506,23 @@ return [
                 'title'   => 'श्रेणियाँ',
 
                 'datagrid' => [
-                    'active'         => 'सक्रिय',
-                    'code'           => 'कोड',
-                    'delete'         => 'मिटाना',
-                    'delete-success' => 'चयनित :resource को सफलतापूर्वक हटा दिया गया था',
-                    'edit'           => 'संपादन करना',
-                    'id'             => 'पहचान',
-                    'inactive'       => 'निष्क्रिय',
-                    'name'           => 'प्रदर्शित होने वाला नाम',
-                    'no-of-products' => 'उत्पादों की संख्या',
-                    'position'       => 'पद',
-                    'category-name'  => 'नाम',
-                    'status'         => 'मेनू में दिखाई दे रहा है',
-                    'update-status'  => 'अद्यतन स्थिति',
+                    'active'                 => 'सक्रिय',
+                    'code'                   => 'कोड',
+                    'delete'                 => 'मिटाना',
+                    'delete-success'         => 'चयनित :resource को सफलतापूर्वक हटा दिया गया था',
+                    'edit'                   => 'संपादन करना',
+                    'id'                     => 'पहचान',
+                    'inactive'               => 'निष्क्रिय',
+                    'name'                   => 'प्रदर्शित होने वाला नाम',
+                    'no-of-products'         => 'उत्पादों की संख्या',
+                    'position'               => 'पद',
+                    'category-name'          => 'नाम',
+                    'status'                 => 'मेनू में दिखाई दे रहा है',
+                    'update-status'          => 'अद्यतन स्थिति',
+                    'parent'                 => 'पैरेंट',
+                    'parent-identifier'      => 'पैरेंट : :sku',
+                    'created-at'             => 'बनाया गया',
+                    'updated-at'             => 'अपडेट किया गया',
                 ],
             ],
 
@@ -574,8 +577,6 @@ return [
             'not-found'            => 'कोड के साथ श्रेणी ":code" नहीं मिल सकता है',
             'unknown-fields'       => 'कोड के साथ श्रेणी फ़ील्ड ":fields" नहीं मिल सकता है',
             'upload-success'       => 'श्रेणी फ़ाइल सफलतापूर्वक अपलोड की गई।',
-            'create-failure'       => 'श्रेणी को नहीं बनाया जा सका।',
-            'update-failure'       => 'श्रेणी को अद्यतन नहीं किया जा सका।',
         ],
 
         'category_fields' => [
@@ -2410,16 +2411,12 @@ return [
     ],
 
     'export' => [
-        'csv'                  => 'सीएसवी',
-        'download'             => 'डाउनलोड करना',
-        'export'               => 'त्वरित निर्यात',
-        'no-records'           => 'निर्यात करने के लिए कुछ भी नहीं',
-        'xls'                  => 'XLS',
-        'xlsx'                 => 'XLSX',
-        'with-media'           => 'मीडिया के साथ',
-        'export-success'       => 'निर्यात सफल रहा!',
-        'error'                => 'कुछ गलत हो गया!',
-        'product-not-selected' => 'त्वरित निर्यात के लिए कोई उत्पाद चयनित नहीं है',
+        'csv'        => 'सीएसवी',
+        'download'   => 'डाउनलोड करना',
+        'export'     => 'त्वरित निर्यात',
+        'no-records' => 'निर्यात करने के लिए कुछ भी नहीं',
+        'xls'        => 'XLS',
+        'xlsx'       => 'XLSX',
     ],
 
     'validations' => [

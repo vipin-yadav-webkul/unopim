@@ -280,7 +280,6 @@ return [
             'product-not-found'       => 'Proizvod s SKU-om ":sku" nije pronađen',
             'parent-not-found'        => 'Roditelj s SKU-om ":sku" nije pronađen',
             'upload-success'          => 'Datoteka proizvoda uspješno učitana.',
-            'update-failure'          => 'Proizvod nije mogao biti ažuriran.',
         ],
 
         'attributes' => [
@@ -505,19 +504,23 @@ return [
                 'title'   => 'Kategorije',
 
                 'datagrid' => [
-                    'active'         => 'Aktivno',
-                    'code'           => 'Kod',
-                    'delete'         => 'Izbriši',
-                    'delete-success' => 'Odabrani :resource uspješno izbrisani',
-                    'edit'           => 'Uredi',
-                    'id'             => 'ID',
-                    'inactive'       => 'Neaktivno',
-                    'name'           => 'Prikazano ime',
-                    'no-of-products' => 'Broj proizvoda',
-                    'position'       => 'Pozicija',
-                    'category-name'  => 'Ime',
-                    'status'         => 'Vidljivo u izborniku',
-                    'update-status'  => 'Ažuriraj status',
+                    'active'                 => 'Aktivno',
+                    'code'                   => 'Kod',
+                    'delete'                 => 'Izbriši',
+                    'delete-success'         => 'Odabrani :resource uspješno izbrisani',
+                    'edit'                   => 'Uredi',
+                    'id'                     => 'ID',
+                    'inactive'               => 'Neaktivno',
+                    'name'                   => 'Prikazano ime',
+                    'no-of-products'         => 'Broj proizvoda',
+                    'position'               => 'Pozicija',
+                    'category-name'          => 'Ime',
+                    'status'                 => 'Vidljivo u izborniku',
+                    'update-status'          => 'Ažuriraj status',
+                    'parent'                 => 'Roditelj',
+                    'parent-identifier'      => 'Roditelj : :sku',
+                    'created-at'             => 'Stvoreno u',
+                    'updated-at'             => 'Ažurirano na',
                 ],
             ],
 
@@ -572,8 +575,6 @@ return [
             'not-found'            => 'Kategorija s kodom ":code" nije pronađena',
             'unknown-fields'       => 'Polje kategorije s kodom ":fields" nije pronađeno',
             'upload-success'       => 'Datoteka kategorije uspješno prenesena.',
-            'create-failure'       => 'Kategorija nije mogla biti stvorena.',
-            'update-failure'       => 'Kategorija nije mogla biti ažurirana.',
         ],
 
         'category_fields' => [
@@ -1612,16 +1613,12 @@ return [
     ],
 
     'export' => [
-        'csv'                  => 'CSV',
-        'download'             => 'Preuzmi',
-        'export'               => 'Brzi izvoz',
-        'no-records'           => 'Nema zapisa za izvoz',
-        'xls'                  => 'XLS',
-        'xlsx'                 => 'XLSX',
-        'with-media'           => 'S medijima',
-        'export-success'       => 'Izvoz je uspješan!',
-        'error'                => 'Nešto je pošlo po zlu!',
-        'product-not-selected' => 'Nema odabranih proizvoda za brzi izvoz',
+        'csv'        => 'CSV',
+        'download'   => 'Preuzmi',
+        'export'     => 'Brzi izvoz',
+        'no-records' => 'Nema zapisa za izvoz',
+        'xls'        => 'XLS',
+        'xlsx'       => 'XLSX',
     ],
 
     'validations' => [

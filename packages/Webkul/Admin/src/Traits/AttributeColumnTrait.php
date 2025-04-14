@@ -52,6 +52,11 @@ trait AttributeColumnTrait
         return $column;
     }
 
+    /**
+     * Get boolean options.
+     *
+     * @return array
+     */
     protected function getBooleanOptions()
     {
         return [
@@ -60,6 +65,11 @@ trait AttributeColumnTrait
         ];
     }
 
+    /**
+     * Get price options.
+     *
+     * @return array
+     */
     protected function getPriceOptions()
     {
         return array_map(fn ($currency) => [
@@ -68,11 +78,21 @@ trait AttributeColumnTrait
         ], core()->getAllActiveCurrencies()->all());
     }
 
+    /**
+     * Get image closure.
+     *
+     * @return \Closure
+     */
     protected function getImageClosure()
     {
         return fn ($value) => ! empty($value) ? Storage::url(is_array($value) ? $value[0] : $value) : '';
     }
 
+    /**
+     * Get dropdown options.
+     *
+     * @return array
+     */
     protected function getDropdownOptions($attribute)
     {
         return [

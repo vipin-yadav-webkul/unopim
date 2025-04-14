@@ -29,15 +29,13 @@ class AbstractOptionsController extends Controller
     protected function getEntityRepository($entityName)
     {
         return match ($entityName) {
-            'attributes'      => $this->attributeRepository,
-            'locale'          => $this->localeRepository,
-            'currency'        => $this->currencyRepository,
-            'channel'         => $this->channelRepository,
-            'category_fields' => $this->categoryFieldRepository,
-
+            'attributes'         => $this->attributeRepository,
+            'locale'             => $this->localeRepository,
+            'currency'           => $this->currencyRepository,
+            'channel'            => $this->channelRepository,
+            'category_fields'    => $this->categoryFieldRepository,
             default              => throw new \Exception('Not implemented for '.$entityName)
         };
-
     }
 
     /**
@@ -86,7 +84,6 @@ class AbstractOptionsController extends Controller
     {
         $translation = $option->translate($currentLocaleCode);
 
-        // return $translation?->label ?? $translation?->name;
         return $translation ? $translation->name : '';
     }
 
@@ -148,10 +145,8 @@ class AbstractOptionsController extends Controller
     protected function getTranslationColumnName(string $entityName): string
     {
         return match ($entityName) {
-            'category_fields' => 'name',
-            'channel'         => 'name',
-            'attributes'      => 'name',
-            default           => 'label'
+            'category_fields', 'channel', 'attributes' => 'name',
+            default => 'label'
         };
     }
 }

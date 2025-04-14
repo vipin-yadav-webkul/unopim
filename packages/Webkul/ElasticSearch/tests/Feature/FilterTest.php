@@ -116,24 +116,22 @@ it('should filter products by status in elasticsearch', function () {
     config(['elasticsearch.enabled' => false]);
 
     $product = Product::factory()->create([
-        'values' => [
-            'common' => [
-                'status' => 'true',
-            ],
-        ],
+        'status' => 'true',
     ]);
 
     $status = 'true';
 
     config(['elasticsearch.enabled' => true]);
 
+    $product->status = $status;
+
     ElasticSearch::shouldReceive('search')
         ->once()
         ->withArgs(function ($args) use ($status) {
             $this->assertArrayHasKey('query', $args);
             $this->assertArrayHasKey('term', $args['query']);
-            $this->assertArrayHasKey('values.common.status', $args['query']['term']);
-            $this->assertEquals($status, $args['query']['term']['values.common.status']);
+            $this->assertArrayHasKey('status', $args['query']['term']);
+            $this->assertEquals($status, $args['query']['term']['status']);
 
             return true;
         })
@@ -152,14 +150,14 @@ it('should filter products by status in elasticsearch', function () {
     $response = ElasticSearch::search([
         'query' => [
             'term' => [
-                'values.common.status' => $status,
+                'status' => $status,
             ],
         ],
     ]);
 
     $this->assertEquals(1, $response['hits']['total']);
     $this->assertEquals($product->id, $response['hits']['hits'][0]['_id']);
-    $this->assertEquals($product->values['common']['status'], $response['hits']['hits'][0]['_source']['values']['common']['status']);
+    $this->assertEquals($product->status, $response['hits']['hits'][0]['_source']['status']);
 });
 
 it('should filter product by id in elasticsearch', function () {

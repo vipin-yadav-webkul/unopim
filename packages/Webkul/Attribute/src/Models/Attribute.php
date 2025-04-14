@@ -34,6 +34,10 @@ class Attribute extends TranslatableModel implements AttributeContract, HistoryC
 
     const DATE_FIELD_TYPE = 'date';
 
+    const TEXT_ATTRIBUTE_TYPE = 'text';
+
+    const TEXTAREA_ATTRIBUTE_TYPE = 'textarea';
+
     const CHECKBOX_FIELD_TYPE = 'checkbox';
 
     const FILE_ATTRIBUTE_TYPE = 'file';

@@ -148,6 +148,8 @@ return [
                     'update-status'          => 'Uppdatera status',
                     'parent'                 => 'Förälder',
                     'parent-identifier'      => 'Förälder: :sku',
+                    'created-at'             => 'Created At',
+                    'updated-at'             => 'Updated At',
                 ],
             ],
 
@@ -280,7 +282,6 @@ return [
             'product-not-found'       => 'Produkten med SKU ":sku" hittades inte',
             'parent-not-found'        => 'Föräldern med SKU ":sku" hittades inte',
             'upload-success'          => 'Produktfilen laddades upp framgångsrikt.',
-            'update-failure'          => 'Produkten kunde inte uppdateras.',
         ],
 
         'attributes' => [
@@ -572,8 +573,6 @@ return [
             'not-found'            => 'Kategori med kod ":code" hittades inte',
             'unknown-fields'       => 'Okänt fält för kategori med kod ":fields"',
             'upload-success'       => 'Kategori fil uppladdad',
-            'create-failure'       => 'Kategorin kunde inte skapas.',
-            'update-failure'       => 'Kategorin kunde inte uppdateras.',
         ],
 
         'category_fields' => [
@@ -1612,16 +1611,12 @@ return [
     ],
 
     'export' => [
-        'csv'                  => 'CSV',
-        'download'             => 'Ladda ner',
-        'export'               => 'Snabb export',
-        'no-records'           => 'Inga poster att exportera',
-        'xls'                  => 'XLS',
-        'xlsx'                 => 'XLSX',
-        'with-media'           => 'Med media',
-        'export-success'       => 'Exporten lyckades!',
-        'error'                => 'Något gick fel!',
-        'product-not-selected' => 'Inga produkter valda för snabbexport',
+        'csv'        => 'CSV',
+        'download'   => 'Ladda ner',
+        'export'     => 'Snabb export',
+        'no-records' => 'Inga poster att exportera',
+        'xls'        => 'XLS',
+        'xlsx'       => 'XLSX',
     ],
 
     'validations' => [

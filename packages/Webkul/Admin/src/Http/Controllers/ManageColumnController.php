@@ -10,6 +10,8 @@ class ManageColumnController extends SelectOptionsController
 {
     /**
      * Get a list of available default values for columns
+     *
+     * @return array
      */
     public function getDefaultColumns(string $source = 'product')
     {
@@ -45,6 +47,8 @@ class ManageColumnController extends SelectOptionsController
 
     /**
      * get available columns
+     *
+     * @return \Illuminate\Http\JsonResponse
      */
     public function availableColumns()
     {

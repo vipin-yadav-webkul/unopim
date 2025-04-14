@@ -198,7 +198,6 @@
 
             methods: {
                 handleRowClick(event, record) {
-                    // Ensure the click event only fires if the clicked element is the row itself
                     if (event.target === event.currentTarget) {
                         this.$parent.performAction(record.actions.find(action => action.index === 'edit'));
                     }
