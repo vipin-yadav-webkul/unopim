@@ -10,7 +10,7 @@ class GenerateFixture extends Command
 {
     protected $signature = 'fixture-factory:generate';
 
-    protected $description = 'Generate fixture (dummy) data for products, categories, and attributes';
+    protected $description = 'Generate fixture (dummy) data for products, and categories';
 
     public function __construct(
         protected ProductFixtureFactoryService $productFixtureFactoryService,
