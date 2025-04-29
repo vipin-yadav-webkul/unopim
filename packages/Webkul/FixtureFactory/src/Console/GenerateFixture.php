@@ -5,6 +5,7 @@ namespace Webkul\FixtureFactory\Console;
 use Illuminate\Console\Command;
 use Webkul\FixtureFactory\Services\AttributeFixtureFactory as AttributeFixtureFactoryService;
 use Webkul\FixtureFactory\Services\CategoryFixtureFactory as CategoryFixtureFactoryService;
+use Webkul\FixtureFactory\Services\FamilyFixtureFactory as FamilyFixtureFactoryService;
 use Webkul\FixtureFactory\Services\ProductFixtureFactory as ProductFixtureFactoryService;
 
 class GenerateFixture extends Command
@@ -16,7 +17,8 @@ class GenerateFixture extends Command
     public function __construct(
         protected ProductFixtureFactoryService $productFixtureFactoryService,
         protected CategoryFixtureFactoryService $categoryFixtureFactoryService,
-        protected AttributeFixtureFactoryService $attributeFixtureFactoryService
+        protected AttributeFixtureFactoryService $attributeFixtureFactoryService,
+        protected FamilyFixtureFactoryService $familyFixtureFactoryService
     ) {
         parent::__construct();
     }
@@ -24,11 +26,15 @@ class GenerateFixture extends Command
     public function handle()
     {
         $attributesCount = (int) $this->ask('How many attributes to generate?', 0);
+        $familiesCount = (int) $this->ask('How many families to generate?', 0);
         $categoriesCount = (int) $this->ask('How many categories to generate?', 0);
         $simpleProductsCount = (int) $this->ask('How many simple products to generate?', 0);
         $configurableProductsCount = (int) $this->ask('How many configurable products to generate?', 0);
 
         $this->generate('Attributes', $attributesCount, 10, fn ($offset, $total, $chunk) =>      $this->attributeFixtureFactoryService->generate($offset, $total, $chunk)
+        );
+
+        $this->generate('Families', $familiesCount, 10, fn ($offset, $total, $chunk) =>      $this->familyFixtureFactoryService->generate($offset, $total, $chunk)
         );
 
         $this->generate('Categories', $categoriesCount, 10, fn ($offset, $total, $chunk) =>      $this->categoryFixtureFactoryService->generate($offset, $total, $chunk)

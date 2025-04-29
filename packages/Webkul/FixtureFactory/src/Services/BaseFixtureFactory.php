@@ -33,6 +33,14 @@ abstract class BaseFixtureFactory
     }
 
     /**
+     * Get a random attribute family ID.
+     */
+    protected function getFamilyId(): int
+    {
+        return DB::table('attribute_families')->inRandomOrder()->first()->id;
+    }
+
+    /**
      * Generate a unique SKU.
      */
     protected function generateCode($table)

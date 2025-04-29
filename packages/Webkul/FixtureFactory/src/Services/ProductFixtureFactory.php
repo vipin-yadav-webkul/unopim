@@ -146,14 +146,6 @@ class ProductFixtureFactory extends BaseFixtureFactory
     }
 
     /**
-     * Get a random attribute family ID.
-     */
-    protected function getFamilyId(): int
-    {
-        return DB::table('attribute_families')->inRandomOrder()->first()->id;
-    }
-
-    /**
      * Generate values for the product.
      * This method generates common values, channel values, and locale values.
      */
