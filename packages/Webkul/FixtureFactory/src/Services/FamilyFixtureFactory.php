@@ -101,7 +101,7 @@ class FamilyFixtureFactory extends BaseFixtureFactory
 
     public function getDefaultGroupMapping()
     {
-        $familyId = $this->getFamilyId();
+        $familyId = DB::table('attribute_families')->where('code', 'default')->value('id') ?? $this->getFamilyId();
 
         $defaultFamilyMapping = DB::table('attribute_family_group_mappings')
             ->join('attribute_group_mappings', 'attribute_group_mappings.attribute_family_group_id', '=', 'attribute_family_group_mappings.id')
