@@ -11,7 +11,7 @@ class ProductFixtureFactory extends BaseFixtureFactory
     /**
      * Generate simple products.
      */
-    public function generateSimpleProducts($index, int $count, $chunkSize)
+    public function generate($index, int $count, $chunkSize)
     {
         $now = now();
         $data = [];
@@ -164,8 +164,8 @@ class ProductFixtureFactory extends BaseFixtureFactory
         $channel = $this->getChannel();
 
         $commonValues = array_merge([
-            'sku'     => $sku,
-            'url_key' => Str::slug($sku),
+            'sku'            => $sku,
+            'url_key'        => Str::slug($sku),
             'product_number' => $this->faker->randomNumber(8, true),
         ], $this->getOptionsTypeAttributes());
 

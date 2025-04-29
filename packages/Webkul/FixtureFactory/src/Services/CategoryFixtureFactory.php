@@ -9,12 +9,12 @@ class CategoryFixtureFactory extends BaseFixtureFactory
     /**
      * Generate categories.
      */
-    public function generateCategories($index, int $count, $chunkSize)
+    public function generate($index, int $count, $chunkSize)
     {
         $now = now();
         $data = [];
 
-        $parentId = 1;
+        $parentId = $this->getParentId();
 
         for ($j = 0; $j < min($chunkSize, $count - $index); $j++) {
             $lft = $rgt = 0;
@@ -26,7 +26,7 @@ class CategoryFixtureFactory extends BaseFixtureFactory
                 $rgt = $lft + rand(1, 5); // Random right value for hierarchy
             }
 
-            $code = $this->generateCode();
+            $code = $this->generateCode('categories');
 
             $data[] = [
                 'code'            => $code, // e.g., "CAT-12345"
@@ -45,30 +45,11 @@ class CategoryFixtureFactory extends BaseFixtureFactory
     }
 
     /**
-     * Generate a unique SKU.
+     * Get a random attribute family ID.
      */
-    public function generateCode()
+    protected function getParentId(): int
     {
-        $firstChar = $this->faker->regexify('[a-zA-Z]');
-        $rest = $this->faker->regexify('[a-zA-Z0-9_]{5,10}');
-        $code = $firstChar.$rest;
-
-        // Check if SKU already exists
-        while ($this->isCodeExist($code)) {
-            $firstChar = $this->faker->regexify('[a-zA-Z]');
-            $rest = $this->faker->regexify('[a-zA-Z0-9_]{5,10}');
-            $code = $firstChar.$rest;
-        }
-
-        return $code;
-    }
-
-    /**
-     * Check if the SKU already exists in the database.
-     */
-    protected function isCodeExist($code): int
-    {
-        return DB::table('categories')->where('code', $code)->count();
+        return DB::table('categories')->inRandomOrder()->first()->id;
     }
 
     /**
