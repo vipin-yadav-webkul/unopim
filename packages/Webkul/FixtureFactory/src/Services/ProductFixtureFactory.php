@@ -2,20 +2,12 @@
 
 namespace Webkul\FixtureFactory\Services;
 
-use Faker\Factory as Faker;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Webkul\Product\Type\AbstractType;
 
-class ProductFixtureFactory
+class ProductFixtureFactory extends BaseFixtureFactory
 {
-    protected $faker;
-
-    public function __construct()
-    {
-        $this->faker = Faker::create();
-    }
-
     /**
      * Generate simple products.
      */
@@ -30,7 +22,7 @@ class ProductFixtureFactory
             $data[] = [
                 'sku'                 => $sku,
                 'status'              => 1,
-                'type'                => $this->faker->randomElement(['simple']),
+                'type'                => 'simple',
                 'parent_id'           => null,
                 'attribute_family_id' => $this->getFamilyId(),
                 'values'              => json_encode($this->generateValues($sku)),
@@ -59,7 +51,7 @@ class ProductFixtureFactory
             $data[] = [
                 'sku'                 => $sku,
                 'status'              => 1,
-                'type'                => $this->faker->randomElement(['configurable']),
+                'type'                => 'configurable',
                 'parent_id'           => null,
                 'attribute_family_id' => $this->getFamilyId(),
                 'values'              => json_encode($this->generateValues($sku)),
@@ -121,7 +113,7 @@ class ProductFixtureFactory
         DB::table('products')->insert([
             'sku'                 => $product['sku'].'-VARIANT',
             'status'              => 1,
-            'type'                => $this->faker->randomElement(['simple']),
+            'type'                => 'simple',
             'parent_id'           => $product['id'],
             'attribute_family_id' => $this->getFamilyId(),
             'values'              => json_encode($this->generateVariantValues($product, $values)),
@@ -167,21 +159,25 @@ class ProductFixtureFactory
      */
     protected function generateValues(string $sku): array
     {
-        $currency = $this->faker->randomElement(['USD']);
-        $locale = $this->faker->randomElement(['en_US']);
-        $channel = $this->faker->randomElement(['default']);
+        $currency = $this->getCurrency();
+        $locale = $this->getLocale();
+        $channel = $this->getChannel();
 
         $commonValues = array_merge([
             'sku'     => $sku,
             'url_key' => Str::slug($sku),
-            'weight'  => $this->faker->randomFloat(2, 0.5, 10),
+            'product_number' => $this->faker->randomNumber(8, true),
         ], $this->getOptionsTypeAttributes());
+
+        $name = $this->faker->productName();
 
         return [
             AbstractType::COMMON_VALUES_KEY  => $commonValues,
             AbstractType::CHANNEL_VALUES_KEY => [
                 $channel => [
-                    'cost' => $this->faker->randomFloat(2, 10, 500),
+                    'cost' => [
+                        $currency => $this->faker->randomFloat(2, 10, 500),
+                    ],
                 ],
             ],
             AbstractType::CHANNEL_LOCALE_VALUES_KEY => [
@@ -190,9 +186,9 @@ class ProductFixtureFactory
                         'price' => [
                             $currency => $this->faker->randomFloat(2, 10, 500),
                         ],
-                        'name'              => ucfirst($this->faker->words(mt_rand(2, 4), true)),
-                        'description'       => $this->faker->paragraph,
-                        'short_description' => $this->faker->sentence,
+                        'name'              => $this->faker->productName(),
+                        'description'       => $this->faker->productDescription($name),
+                        'short_description' => $this->faker->productShortDescription($name),
                     ],
                 ],
             ],

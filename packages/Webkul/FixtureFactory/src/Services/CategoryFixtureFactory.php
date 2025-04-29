@@ -2,18 +2,10 @@
 
 namespace Webkul\FixtureFactory\Services;
 
-use Faker\Factory as Faker;
 use Illuminate\Support\Facades\DB;
 
-class CategoryFixtureFactory
+class CategoryFixtureFactory extends BaseFixtureFactory
 {
-    protected $faker;
-
-    public function __construct()
-    {
-        $this->faker = Faker::create();
-    }
-
     /**
      * Generate categories.
      */
@@ -84,13 +76,14 @@ class CategoryFixtureFactory
      */
     protected function generateAdditionalData(): array
     {
-        $locale = $this->faker->randomElement(['en_US']);
+        $locale = $this->getLocale();
+        $name = $this->faker->categoryName();
 
         return [
             'locale_specific' => [
                 $locale => [
-                    'name'        => ucfirst($this->faker->word),
-                    'description' => $this->faker->sentence(10),
+                    'name'        => $name,
+                    'description' => $this->faker->categoryDescription($name),
                 ],
             ],
         ];
