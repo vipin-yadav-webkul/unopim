@@ -192,9 +192,12 @@
                 @endforeach
             </div>
         </div>
-
         {!! view_render_event('unopim.admin.catalog.product.edit.form.after', ['product' => $product]) !!}
-    </x-admin::form>
 
+        <!-- state track -->
+        <x-admin::form.control-group.state></x-admin::form.control-group.state>
+    </x-admin::form>
+                    
     {!! view_render_event('unopim.admin.catalog.product.edit.after', ['product' => $product]) !!}
+    
 </x-admin::layouts.with-history>
