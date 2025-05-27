@@ -11,6 +11,7 @@
     <x-admin::tree.radio />
 @endif
 
+
 <v-tree-view
     {{ $attributes->except(['input-type', 'selection-type']) }}
     input-type="{{ $inputType }}"
@@ -84,6 +85,12 @@
                 fallbackLocale: {
                     type: String,
                     required: 'en_US',
+                },
+
+                formData: {
+                    type: [Array, String, Object],
+                    required: false,
+                    default: () => ([])
                 },
             },
 
@@ -300,6 +307,7 @@
 
                 handleCheckbox(key) {
                     let item = this.searchInTree(this.formattedItems, key);
+                    this.updateForm(key);
 
                     switch (this.selectionType) {
                         case 'individual':
@@ -317,6 +325,23 @@
 
                             break;
                     }
+                },
+
+                updateForm(value) {
+                    let categories = [...this.formData.categories]; // clone to avoid reference issues
+                    const index = categories.indexOf(value);
+
+                    if (index !== -1) {
+                        categories.splice(index, 1);
+                    } else {
+                        categories.push(value);
+                    }
+
+                    this.formData.categories = categories; // trigger reactivity with a new array
+                    console.log(categories, 'this.formData');
+
+                    this.$emitter.emit('change-form-state', this.formData);
+
                 },
 
                 handleIndividualSelectionType(item) {

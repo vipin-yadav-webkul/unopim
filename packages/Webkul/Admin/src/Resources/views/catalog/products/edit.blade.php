@@ -195,7 +195,13 @@
         {!! view_render_event('unopim.admin.catalog.product.edit.form.after', ['product' => $product]) !!}
 
         <!-- state track -->
-        <x-admin::form.control-group.state></x-admin::form.control-group.state>
+        <x-admin::form.control-group.state :additionalValues="[
+            'categories' => $product->values['categories'] ?? [],
+            'upSellAssociations'    => $product->values['associations']['up_sells'] ?? [],
+            'crossSellAssociations' => $product->values['associations']['cross_sells'] ?? [],
+            'relatedAssociations'   => $product->values['associations']['related_products'] ?? [],
+            ]"
+        />
     </x-admin::form>
                     
     {!! view_render_event('unopim.admin.catalog.product.edit.after', ['product' => $product]) !!}

@@ -1,6 +1,38 @@
+
+<v-admin-form-binding :form-data="values" :set-values="setValues" :additional-data='@json($additionalValues)' />
 <v-admin-form-state :form-data="values" />
 
 @pushOnce('scripts')
+
+<script type="module">
+    app.component('v-admin-form-binding', {
+        props: {
+            formData: {
+                type: Object,
+                required: true
+            },
+            additionalData: {
+                type: Object,
+                required: true
+            },
+            setValues: {
+                type: Function,
+                required: true
+            }
+        },
+        mounted() {
+            this.setDefaultValues(this.additionalData);
+        },
+        methods: {
+            setDefaultValues(newValues) {
+                this.setValues({
+                ...this.formData,
+                ...newValues
+                });
+            },
+        }
+    });
+</script>
 <script type="text/x-template" id="v-admin-form-state-template">
     <div style="display: none;"></div> <!-- Empty template (no visual) -->
 </script>
@@ -12,7 +44,7 @@
             formData: {
                 type: Object,
                 required: true
-            }
+            },
         },
         data() {
             return {
@@ -31,21 +63,24 @@
         mounted() {
             this.$emitter.on('change-form-state', (formData) => {
                 this.formData = formData;
+                console.log(this.formData, 'this.state')
                 this.markDirty();
             });
+
+            console
 
             document.querySelectorAll('a[href*="?channel"], a[href*="?locale"]').forEach(link => {
                 link.addEventListener('click', this.handleLinkClick);
             });
 
-            // window.addEventListener('beforeunload', this.handleBeforeUnload);
+            window.addEventListener('beforeunload', this.handleBeforeUnload);
         },
         beforeUnmount() {
             document.querySelectorAll('a[href*="?channel"], a[href*="?locale"]').forEach(link => {
                 link.removeEventListener('click', this.handleLinkClick);
             });
 
-            // window.removeEventListener('beforeunload', this.handleBeforeUnload);
+            window.removeEventListener('beforeunload', this.handleBeforeUnload);
         },
         methods: {
             markDirty() {

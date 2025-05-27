@@ -17,7 +17,9 @@
     <!-- Panel Content -->
     <div class="mb-5 text-sm text-gray-600 dark:text-gray-300">
 
-        <v-product-categories>
+        <v-product-categories
+            :values="values"
+        >
             <x-admin::shimmer.tree />
         </v-product-categories>
 
@@ -39,6 +41,7 @@
             </template>
 
             <template v-else>
+           
                 <x-admin::tree.view
                     input-type="checkbox"
                     selection-type="individual"
@@ -48,6 +51,7 @@
                     ::items="categories"
                     :value="json_encode($productCategories)"
                     :fallback-locale="config('app.fallback_locale')"
+                    ::formData="values"
                 >
                 </x-admin::tree.view>
             </template>
@@ -57,6 +61,12 @@
     <script type="module">
         app.component('v-product-categories', {
             template: '#v-product-categories-template',
+            props: {
+                values: {
+                    type: Array,
+                    default: () => []
+                }
+            },
 
             data() {
                 return {
