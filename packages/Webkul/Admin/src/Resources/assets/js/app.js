@@ -48,6 +48,7 @@ import VeeValidate from "./plugins/vee-validate";
 import Draggable from "./plugins/draggable";
 import Multiselect from './plugins/multiselect';
 import Tribute from "./plugins/tribute";
+import FormManager from "./plugins/form-manager";
 
 [
     Admin,
@@ -59,6 +60,7 @@ import Tribute from "./plugins/tribute";
     Draggable,
     Multiselect,
     Tribute,
+    FormManager,
 ].forEach((plugin) => app.use(plugin));
 
 

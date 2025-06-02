@@ -207,17 +207,29 @@
                     
                     if (newProducts.length > 0) {
                         this.addedProducts[this.selectedType] = [...existingProducts, ...newProducts];
+
+                        this.updateState();
                     }
+
                 },
 
                 remove(type, product) {
                     this.$emitter.emit('open-delete-modal', {
                         agree: () => {
                             this.addedProducts[type] = this.addedProducts[type].filter(item => item.sku !== product.sku);
+
+                            this.updateState();
                         },
                     });
                 },
 
+                updateState() {
+                    const formData = this.$formManager.getFormData();
+                    const updatedFormData = { ...formData, [this.selectedType]: this.addedProducts[this.selectedType] };
+                    console.log('Updated form data:', updatedFormData);
+                    this.$formManager.setFormData(updatedFormData);
+                    this.$emitter.emit('change-form-state', updatedFormData);
+                },
             }
         });
     </script>

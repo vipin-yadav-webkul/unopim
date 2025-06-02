@@ -86,12 +86,6 @@
                     type: String,
                     required: 'en_US',
                 },
-
-                formData: {
-                    type: [Array, String, Object],
-                    required: false,
-                    default: () => ([])
-                },
             },
 
             data() {
@@ -185,6 +179,8 @@
                         ...props,
 
                         onChangeInput: (item) => {
+                            this.handleRadio(item.value);
+
                             this.$emit('change-input', this.formattedValues[0]);
                         },
                     });
@@ -327,21 +323,27 @@
                     }
                 },
 
-                updateForm(value) {
-                    let categories = [...this.formData.categories]; // clone to avoid reference issues
-                    const index = categories.indexOf(value);
+                handleRadio(key) {
+                    this.updateForm(key);
+                },
 
+                updateForm(value) {
+                    const formData = this.$formManager.getFormData();
+
+                    const fieldValue = Array.isArray(formData[this.nameField]) ? [...formData[this.nameField]] : [];
+
+                    const index = fieldValue.indexOf(value);
                     if (index !== -1) {
-                        categories.splice(index, 1);
+                        fieldValue.splice(index, 1);
                     } else {
-                        categories.push(value);
+                        fieldValue.push(value);
                     }
 
-                    this.formData.categories = categories; // trigger reactivity with a new array
-                    console.log(categories, 'this.formData');
+                    const updatedFormData = { ...formData, [this.nameField]: fieldValue };
 
-                    this.$emitter.emit('change-form-state', this.formData);
+                    this.$formManager.setFormData(updatedFormData);
 
+                    this.$emitter.emit('change-form-state', updatedFormData);
                 },
 
                 handleIndividualSelectionType(item) {

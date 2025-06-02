@@ -194,14 +194,26 @@
         </div>
         {!! view_render_event('unopim.admin.catalog.product.edit.form.after', ['product' => $product]) !!}
 
-        <!-- state track -->
-        <x-admin::form.control-group.state :additionalValues="[
-            'categories' => $product->values['categories'] ?? [],
-            'upSellAssociations'    => $product->values['associations']['up_sells'] ?? [],
-            'crossSellAssociations' => $product->values['associations']['cross_sells'] ?? [],
-            'relatedAssociations'   => $product->values['associations']['related_products'] ?? [],
+        <!-- init-form data -->
+        <x-admin::form.init-form-data :additionalValues="[
+            'categories'       => $product->values['categories'] ?? [],
+            'up_sells'         => $product->values['associations']['up_sells'] ?? [],
+            'cross_sells'      => $product->values['associations']['cross_sells'] ?? [],
+            'related_products' => $product->values['associations']['related_products'] ?? [],
             ]"
         />
+
+        <!-- init-form data -->
+        <x-admin::form.init-form-data :additionalValues="[
+            'categories'       => $product->values['categories'] ?? [],
+            'up_sells'         => $product->values['associations']['up_sells'] ?? [],
+            'cross_sells'      => $product->values['associations']['cross_sells'] ?? [],
+            'related_products' => $product->values['associations']['related_products'] ?? [],
+            ]"
+        />
+
+        <!-- state track -->
+        <x-admin::form.state/>
     </x-admin::form>
                     
     {!! view_render_event('unopim.admin.catalog.product.edit.after', ['product' => $product]) !!}

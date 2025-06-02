@@ -51,7 +51,6 @@
                     ::items="categories"
                     :value="json_encode($productCategories)"
                     :fallback-locale="config('app.fallback_locale')"
-                    ::formData="values"
                 >
                 </x-admin::tree.view>
             </template>
