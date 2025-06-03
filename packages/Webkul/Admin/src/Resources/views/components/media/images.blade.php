@@ -93,6 +93,7 @@
                             :width="width"
                             :height="height"
                             @onRemove="remove($event)"
+                            @onStateChange="updateState($event)"
                         >
                         </v-media-image-item>
                     </template>
@@ -625,12 +626,16 @@
                     if (this.ai.enabled) {
                         this.$refs.choiceImageModal.close()
                     }
+
+                    this.updateState();
                 },
 
                 remove(image) {
                     let index = this.images.indexOf(image);
 
                     this.images.splice(index, 1);
+
+                    this.updateState();
                 },
 
                 toggleImageAIModal() {
@@ -772,7 +777,13 @@
 
                         images: [],
                     };
-                }
+                },
+
+                updateState() {
+                    this.$formManager.updateField(this.name, this.images);
+                    const formData = this.$formManager.getFormData();
+                    this.$emitter.emit('change-form-state', formData);
+                },
             }
         });
 
@@ -811,6 +822,8 @@
                     this.setFile(imageInput.files[0]);
 
                     this.readFile(imageInput.files[0]);
+
+                    this.$emit('onStateChange', this.image);
                 },
 
                 remove() {

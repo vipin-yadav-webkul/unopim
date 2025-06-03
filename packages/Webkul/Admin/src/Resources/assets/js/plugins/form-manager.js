@@ -1,41 +1,43 @@
 import { reactive, readonly } from 'vue';
 
 export default {
-  install(app) {
-    // Private reactive state (like Redux store state)
-    // Use reactive object with a single `formData` ref
+  install(app, options = {}) {
     const state = reactive({
-      formData: {}
+      formData: {},
+      ...options.initialState
     });
 
-    // Actions to modify state (like Redux actions)
     const actions = {
       initializeFormData(initialData = {}) {
-        // Replace whole formData object to trigger reactivity once
         state.formData = { ...initialData };
       },
       updateField(key, value) {
-        // Update single field reactively
         state.formData[key] = value;
       },
       resetFormData() {
-        // Reset formData to empty object
         state.formData = {};
       },
       setFormData(newData = {}) {
-        // Replace whole formData object for better performance
         state.formData = { ...newData };
+      }
+    };
+
+    const getters = {
+      getField(key) {
+        return state.formData[key];
       },
       getFormData() {
-        // Return shallow copy to prevent external mutations
         return { ...state.formData };
       }
     };
 
-    // Expose readonly reactive state + actions globally
+    const extensions = options.extend?.({ state, actions, getters }) || {};
+
     app.config.globalProperties.$formManager = {
       state: readonly(state),
-      ...actions
+      ...actions,
+      ...getters,
+      ...extensions
     };
   }
 };
