@@ -210,7 +210,6 @@
 
                         this.updateState();
                     }
-
                 },
 
                 remove(type, product) {
@@ -229,7 +228,7 @@
                     console.log('Updated form data:', updatedFormData);
                     this.$formManager.setFormData(updatedFormData);
                     this.$emitter.emit('change-form-state', updatedFormData);
-                },
+                },  
             }
         });
     </script>
