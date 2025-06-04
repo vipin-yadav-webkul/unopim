@@ -225,7 +225,7 @@
                 updateState() {
                     const formData = this.$formManager.getFormData();
                     const updatedFormData = { ...formData, [this.selectedType]: this.addedProducts[this.selectedType] };
-                    console.log('Updated form data:', updatedFormData);
+                    
                     this.$formManager.setFormData(updatedFormData);
                     this.$emitter.emit('change-form-state', updatedFormData);
                 },  
