@@ -83,6 +83,7 @@
                     v-bind="{animation: 200}"
                     :list="images"
                     item-key="id"
+                    @change="onChangeItems($event)"
                 >
                     <template #item="{ element, index }">
                         <v-media-image-item
@@ -580,7 +581,7 @@
                     try {
                         this.ai.quality = JSON.parse(newVal)?.value     // Return true if parsing succeeds
                     } catch (e) {}
-                }
+                },
             },
 
             mounted() {
@@ -777,6 +778,10 @@
 
                         images: [],
                     };
+                },
+
+                onChangeItems(event) {
+                    this.updateState();
                 },
 
                 updateState() {
