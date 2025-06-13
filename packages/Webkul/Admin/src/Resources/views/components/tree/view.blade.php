@@ -11,6 +11,7 @@
     <x-admin::tree.radio />
 @endif
 
+
 <v-tree-view
     {{ $attributes->except(['input-type', 'selection-type']) }}
     input-type="{{ $inputType }}"
@@ -178,6 +179,8 @@
                         ...props,
 
                         onChangeInput: (item) => {
+                            this.handleRadio(item.value);
+
                             this.$emit('change-input', this.formattedValues[0]);
                         },
                     });
@@ -300,6 +303,7 @@
 
                 handleCheckbox(key) {
                     let item = this.searchInTree(this.formattedItems, key);
+                    this.updateForm(key);
 
                     switch (this.selectionType) {
                         case 'individual':
@@ -317,6 +321,29 @@
 
                             break;
                     }
+                },
+
+                handleRadio(key) {
+                    this.updateForm(key);
+                },
+
+                updateForm(value) {
+                    const formData = this.$formManager.getFormData();
+
+                    const fieldValue = Array.isArray(formData[this.nameField]) ? [...formData[this.nameField]] : [];
+
+                    const index = fieldValue.indexOf(value);
+                    if (index !== -1) {
+                        fieldValue.splice(index, 1);
+                    } else {
+                        fieldValue.push(value);
+                    }
+
+                    const updatedFormData = { ...formData, [this.nameField]: fieldValue };
+
+                    this.$formManager.setFormData(updatedFormData);
+
+                    this.$emitter.emit('change-form-state', updatedFormData);
                 },
 
                 handleIndividualSelectionType(item) {

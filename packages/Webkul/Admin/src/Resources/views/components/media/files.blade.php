@@ -70,6 +70,7 @@
                             :height="height"
                             @onRemove="remove($event)"
                             @onChange="change($event)"
+                            @onStateChange="updateState($event)"
                         >
                         </v-media-files-item>
                     </template>
@@ -193,15 +194,25 @@
                             file: file
                         });
                     });
+
+                    this.updateState();
                 },
 
                 remove(file) {
                     let index = this.inputFiles.indexOf(file);
 
                     this.inputFiles.splice(index, 1);
+
+                    this.updateState();
                 },
                 change(file) {
                     this.inputFiles[0].file = file;
+                },
+
+                updateState() {
+                    this.$formManager.updateField(this.name, this.inputFiles);
+                    const formData = this.$formManager.getFormData();
+                    this.$emitter.emit('change-form-state', formData);
                 },
             }
         });
@@ -249,6 +260,8 @@
                     this.readFile(inputs.files[0]);
 
                     this.$emit('onChange', inputs.files[0])
+
+                    this.$emit('onStateChange', this.inputFile);
                 },
 
                 remove() {
